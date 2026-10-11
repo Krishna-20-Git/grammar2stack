@@ -1,0 +1,69 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Formal cyberpunk laboratory: void background, fine measurement grid,
+   neon used only to encode meaning (cyan = computation, magenta = expansion,
+   lime = success, violet = structure, red = rejection). */
+:root {
+  color-scheme: dark;
+  --void: #080a12;
+  --panel: #111827;
+  --edge: #1f2a3d;
+  --cyan: #00f5ff;
+  --magenta: #ff2bd6;
+  --lime: #b6ff00;
+  --violet: #8b5cff;
+  --red: #ff3b4f;
+  --ink: #f1f5f9;
+  --muted: #94a3b8;
+}
+
+html, body, #root { min-height: 100%; }
+body {
+  margin: 0;
+  background-color: var(--void);
+  background-image:
+    linear-gradient(rgba(148, 163, 184, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.045) 1px, transparent 1px);
+  background-size: 32px 32px;
+  color: var(--ink);
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+@layer components {
+  .panel {
+    @apply rounded-md border border-edge bg-panel/95 min-w-0;
+    box-shadow: inset 0 1px 0 rgba(241, 245, 249, 0.03);
+  }
+  .panel-active { box-shadow: 0 0 0 1px rgba(0, 245, 255, 0.25), 0 0 24px -12px rgba(0, 245, 255, 0.5); }
+  .label {
+    @apply font-display text-[11px] font-semibold uppercase tracking-[0.14em] text-slate;
+  }
+  .h-section { @apply font-display text-lg font-semibold tracking-wide text-ink; }
+  .btn {
+    @apply inline-flex min-h-[40px] items-center justify-center gap-2 rounded border border-edge bg-panel2 px-3 text-sm font-medium text-ink transition-colors hover:border-slate-deep disabled:cursor-not-allowed disabled:opacity-40;
+  }
+  .btn-primary { @apply border-cyan/60 bg-cyan/10 text-cyan hover:bg-cyan/20 hover:border-cyan; }
+  .chip { @apply inline-flex items-center rounded-sm px-1.5 py-0.5 font-mono text-[11px] font-bold uppercase tracking-wide; }
+  .math { @apply font-mono; font-variant-ligatures: none; }
+  .field {
+    @apply w-full rounded border border-edge bg-void px-3 py-2 font-mono text-ink placeholder:text-slate-deep;
+  }
+}
+
+*:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+::selection { background: rgba(139, 92, 255, 0.45); }
+
+.scroll-thin { scrollbar-width: thin; scrollbar-color: #334155 transparent; }
+.tabular { font-variant-numeric: tabular-nums; }
+
+/* edge highlight travelling along the active transition */
+.edge-active { filter: drop-shadow(0 0 4px currentColor); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+}

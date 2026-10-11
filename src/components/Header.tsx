@@ -1,12 +1,9 @@
 import { useLab, type Status, type View } from '../hooks/useLab';
 
 const NAV: { id: View; label: string }[] = [
-  { id: 'overview', label: 'Overview' },
-  { id: 'grammar', label: 'Grammar' },
-  { id: 'automaton', label: 'Automaton' },
-  { id: 'simulation', label: 'Simulation' },
-  { id: 'derivation', label: 'Derivation' },
-  { id: 'docs', label: 'Documentation' },
+  { id: 'home', label: 'Home' },
+  { id: 'workspace', label: 'Workspace' },
+  { id: 'docs', label: 'How it works' },
 ];
 
 const STATUS: Record<Status, { label: string; color: string }> = {

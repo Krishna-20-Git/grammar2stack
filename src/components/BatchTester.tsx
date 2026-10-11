@@ -101,7 +101,7 @@ export function BatchTester() {
                       <td className="px-3 py-1.5 text-slate">{r.expected ? 'in L' : 'not in L'} {(r.verdict === 'accepted') === r.expected ? <span className="text-lime">✓</span> : <span className="text-danger">✗</span>}</td>
                     )}
                     <td className="px-3 py-1.5 text-right">
-                      <button className="text-xs text-cyan underline-offset-2 hover:underline" onClick={() => { lab.setInput(r.w); lab.setView('simulation'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>Animate</button>
+                      <button className="text-xs text-cyan underline-offset-2 hover:underline" onClick={() => { lab.setInput(r.w); lab.openWorkspace('simulate'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>Animate</button>
                     </td>
                   </tr>
                 ))}

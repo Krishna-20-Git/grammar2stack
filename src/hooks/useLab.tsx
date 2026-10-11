@@ -21,7 +21,9 @@ import {
  * state diagram, stack, table and explanation always come from one step.
  */
 
-export type View = 'overview' | 'grammar' | 'automaton' | 'simulation' | 'derivation' | 'docs';
+export type View = 'home' | 'workspace' | 'docs';
+/** tabs inside the workspace: the run itself, the parse tree, and the formal theory */
+export type Tab = 'simulate' | 'derivation' | 'theory';
 export type Mode = 'guided' | 'step' | 'auto';
 export type Status = 'ready' | 'running' | 'paused' | 'accepted' | 'rejected' | 'inconclusive';
 
@@ -35,10 +37,21 @@ export const SPEEDS = [
 const DEFAULT = PRESETS[0];
 
 function useLabState() {
-  const [view, setView] = useState<View>(() => {
+  // old links (#simulation, #grammar, ...) still land in the right place
+  const initial = (() => {
     const h = typeof location !== 'undefined' ? location.hash.slice(1) : '';
-    return (['overview', 'grammar', 'automaton', 'simulation', 'derivation', 'docs'] as View[]).includes(h as View) ? (h as View) : 'overview';
-  });
+    const map: Record<string, [View, Tab]> = {
+      home: ['home', 'simulate'], overview: ['home', 'simulate'],
+      workspace: ['workspace', 'simulate'], simulation: ['workspace', 'simulate'],
+      derivation: ['workspace', 'derivation'],
+      grammar: ['workspace', 'theory'], automaton: ['workspace', 'theory'],
+      docs: ['docs', 'simulate'],
+    };
+    return map[h] ?? (['home', 'simulate'] as [View, Tab]);
+  })();
+  const [view, setView] = useState<View>(initial[0]);
+  const [tab, setTab] = useState<Tab>(initial[1]);
+  const [advanced, setAdvanced] = useState(false);
   const [grammarText, setGrammarTextRaw] = useState(DEFAULT.grammar);
   const [presetId, setPresetId] = useState<string | null>(DEFAULT.id);
   const [customLang, setCustomLang] = useState<BuiltLanguage | null>(null);
@@ -91,6 +104,12 @@ function useLabState() {
     setPlaying(true);
   }, [last]);
   const pause = useCallback(() => setPlaying(false), []);
+  const openWorkspace = useCallback((t: Tab = 'simulate', showAdvanced = false) => {
+    setView('workspace');
+    setTab(t);
+    if (showAdvanced) setAdvanced(true);
+    try { window.scrollTo({ top: 0 }); } catch { /* sandboxed */ }
+  }, []);
 
   const loadGrammar = useCallback((text: string, pid: string | null = null) => {
     setGrammarTextRaw(text);
@@ -129,7 +148,7 @@ function useLabState() {
   const outsideAlphabet = w.filter((c) => !g.terminals.includes(c));
 
   return {
-    view, setView, mode, setMode,
+    view, setView, tab, setTab, advanced, setAdvanced, openWorkspace, mode, setMode,
     grammarText, presetId, preset, loadGrammar, applyPreset, parsed, customLang, loadLanguage, membership,
     g, pda, notes,
     input, w, setInput, outsideAlphabet,

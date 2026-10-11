@@ -3,7 +3,7 @@ import { useLab } from '../hooks/useLab';
 
 /** Outcome banner shown once the timeline reaches the end of the displayed branch. */
 export function Verdict() {
-  const { result, sim, atEnd, w, snapshots, setView } = useLab();
+  const { result, sim, atEnd, w, snapshots, openWorkspace } = useLab();
   const reduce = useReducedMotion();
   if (!atEnd) return null;
   const st = result.stats;
@@ -54,8 +54,8 @@ export function Verdict() {
         No computation path reaches an accepting configuration. The search explored the whole computation tree for <span className="math">{word}</span>: {failed} branch{failed === 1 ? '' : 'es'} ended in a dead end or reached q2 with input left, and {st.pruned} {st.pruned === 1 ? 'was' : 'were'} soundly pruned (no possible continuation could accept). Because every branch fails, <span className="math">{word} ∉ L(G)</span>.
       </p>
       <button className="mt-2 text-sm text-cyan underline-offset-2 hover:underline"
-        onClick={() => { setView('simulation'); setTimeout(() => document.getElementById('branches')?.scrollIntoView({ behavior: 'smooth' }), 50); }}>
-        Inspect the branches in the Computation Branch Explorer ↓
+        onClick={() => { openWorkspace('simulate', true); setTimeout(() => document.getElementById('branches')?.scrollIntoView({ behavior: 'smooth' }), 50); }}>
+        Inspect the branches in the branch explorer ↓
       </button>
     </div>
   );

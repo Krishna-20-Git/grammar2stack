@@ -91,7 +91,7 @@ export function ChallengeMode() {
           </div>
           <p className="mt-1 text-sm text-ink">{explanation}</p>
           <div className="mt-3 flex flex-wrap gap-2">
-            <button className="btn btn-primary" onClick={() => { lab.applyPreset(preset.id, c.input); lab.setView('simulation'); }}>Watch the computation</button>
+            <button className="btn btn-primary" onClick={() => { lab.applyPreset(preset.id, c.input); lab.openWorkspace('simulate'); }}>Watch the computation</button>
             <button className="btn" onClick={nextChallenge}>{i + 1 < CHALLENGES.length ? 'Next challenge' : 'Start again'}</button>
           </div>
         </motion.div>

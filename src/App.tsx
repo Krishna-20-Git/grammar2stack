@@ -1,17 +1,14 @@
 import { motion, useReducedMotion } from 'framer-motion';
 import { Header } from './components/Header';
 import { LabProvider, useLab } from './hooks/useLab';
-import { AutomatonView } from './views/AutomatonView';
-import { DerivationView } from './views/DerivationView';
 import { DocsView } from './views/DocsView';
-import { GrammarView } from './views/GrammarView';
-import { Overview } from './views/Overview';
-import { SimulationView } from './views/SimulationView';
+import { Home } from './views/Home';
+import { Workspace } from './views/Workspace';
 
 function Shell() {
   const { view } = useLab();
   const reduce = useReducedMotion();
-  const View = { overview: Overview, grammar: GrammarView, automaton: AutomatonView, simulation: SimulationView, derivation: DerivationView, docs: DocsView }[view];
+  const View = { home: Home, workspace: Workspace, docs: DocsView }[view];
   return (
     <div className="min-h-full">
       <Header />

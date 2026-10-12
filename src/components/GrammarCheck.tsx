@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { compareWithTarget } from '../core';
+import { compareWithTarget, showRhs } from '../core';
 import { useLab } from '../hooks/useLab';
 
 const MAX_STRINGS = 520; // keeps the check fast: every string up to the longest length that fits this budget
@@ -33,6 +33,13 @@ export function GrammarCheck() {
     <div className={`flex flex-col gap-2 rounded-md border px-3 py-3 ${ok ? 'border-lime/50 bg-lime/[0.06]' : 'border-danger/50 bg-danger/[0.06]'}`} role="status" aria-live="polite">
       <div className="label">Target language</div>
       <p className="text-sm text-ink">Strings over {'{'}{res.sigma.join(', ')}{'}'} that {target.summary}.</p>
+      <div className="rounded border border-edge bg-void/60 px-3 py-2">
+        <div className="label">Productions being checked (the applied grammar)</div>
+        <ul className="math mt-1 flex flex-col gap-0.5 text-sm text-ink">
+          {g.variables.map((v) => <li key={v}>{v} → {g.productions.filter((p) => p.lhs === v).map((p) => showRhs(p.rhs)).join(' | ')}</li>)}
+        </ul>
+        <p className="mt-1 text-xs text-slate-deep">If you edited the box above, press Apply grammar to check the new version.</p>
+      </div>
       {ok ? (
         <p className="text-sm text-lime">
           ✓ Your productions generate exactly this language for all {res.total} strings of length 0 to {res.maxLen}.

@@ -188,7 +188,7 @@ export function LanguageBuilder({ compact = false, onBuilt }: { compact?: boolea
         <ul className="mt-1.5 flex list-disc flex-col gap-0.5 pl-5">
           <li><b className="text-ink">Properties</b>: starting / ending with aa, containing aba, not containing bb, containing 3 b (exactly), at least / at most 2 a, even / odd number of a, even length, length at least 3. Join them with “and”.</li>
           <li><b className="text-ink">Blocks in order</b>: 2 a followed by 4 b, any number of a followed by b, one or more a then at most 2 b, or notation a^2 b^4, a* b+.</li>
-          <li><b className="text-ink">Linked counts (context-free)</b>: n a followed by 2n b, a^n b^n, a^n c b^n, a^(n+1) b^n, a^n b^m c^m d^n, “where n ≥ 1”.</li>
+          <li><b className="text-ink">Linked counts (context-free)</b>: n a followed by 2n b, a to the power n and b to the power 2n, a^n b^n, a^n c b^n, a^(n+1) b^n, a^n b^m c^m d^n, “where n ≥ 1”.</li>
           <li>Not context-free, so no PDA exists, and the app explains why: a^n b^n c^n, a^n b^m c^n d^m.</li>
         </ul>
       </details>

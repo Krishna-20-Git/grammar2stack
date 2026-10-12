@@ -488,10 +488,26 @@ export interface ParseOutcome {
  *   even number of a · odd number of b's · even length · length at least 3 · number of a divisible by 3
  * joined by "and" or commas. Non-regular patterns (aⁿbⁿ, palindromes, …) are reported in `pattern`.
  */
+/**
+ * Rewrite spoken "power" phrasing into the caret notation the sequence parser understands:
+ * "a to power n and b to the power 2n" → "a^n b^2n". Also "raised to", "power of", and
+ * "and" or commas between exponent blocks.
+ */
+const EXPONENT = String.raw`(\d*[a-z](?:\s*[+-]\s*\d+)?|\d+|\(\s*[a-z]\s*[+-]\s*\d+\s*\))(?![a-z])`;
+const POWER_PHRASE = new RegExp(
+  String.raw`\b([a-z])\s+(?:raised\s+to\s+(?:the\s+)?(?:power\s+(?:of\s+)?)?|to\s+(?:the\s+power\s+(?:of\s+)?|power\s+(?:of\s+)?|the\s+)|power\s+(?:of\s+)?)` + EXPONENT,
+  'g',
+);
+export function normalisePowers(t: string): string {
+  return t
+    .replace(POWER_PHRASE, (_m, base: string, e: string) => `${base}^${e.replace(/\s+/g, '')}`)
+    .replace(/(\^[^\s,]+)\s*(?:,|\band\b)\s*(?=[a-z]\s*\^)/g, '$1 ');
+}
+
 export function parseDescription(text: string, sigma: string[]): ParseOutcome {
   const conditions: Condition[] = [];
   const errors: string[] = [];
-  const lower = text.toLowerCase().replace(/[’`]/g, "'").trim();
+  const lower = normalisePowers(text.toLowerCase().replace(/[’`]/g, "'").trim());
 
   const cf = detectPattern(lower);
   if (cf) return { conditions, errors, pattern: cf };

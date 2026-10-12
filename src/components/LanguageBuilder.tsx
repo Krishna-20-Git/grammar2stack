@@ -165,12 +165,15 @@ export function LanguageBuilder({ compact = false, onBuilt }: { compact?: boolea
       <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_120px]">
         <div className="flex flex-col gap-1">
           <label htmlFor={`lang-text-${compact}`} className="label">Describe the language in words</label>
-          <div className="flex gap-2">
-            <input id={`lang-text-${compact}`} className="field min-w-0 font-sans text-[15px]" value={text} spellCheck={false}
+          {/* phones: the text box gets its own full-width row, the two buttons sit below it */}
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <input id={`lang-text-${compact}`} className="field min-w-0 flex-1 font-sans text-[15px]" value={text} spellCheck={false}
               placeholder="e.g. ending with two a and containing 3 b"
               onChange={(e) => setText(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') fromText(text); }} />
-            <button className="btn btn-primary shrink-0" onClick={() => fromText(text)} disabled={!text.trim()} title="Generate a grammar for this language, convert it to a PDA and run it">Build PDA</button>
-            <button className="btn shrink-0" onClick={() => fromText(text, true)} disabled={!text.trim()} title="Keep your own productions and check them against this description">Check my productions</button>
+            <div className="flex gap-2">
+              <button className="btn btn-primary flex-1 sm:flex-none" onClick={() => fromText(text)} disabled={!text.trim()} title="Generate a grammar for this language, convert it to a PDA and run it">Build PDA</button>
+              <button className="btn flex-1 sm:flex-none" onClick={() => fromText(text, true)} disabled={!text.trim()} title="Keep your own productions and check them against this description">Check my productions</button>
+            </div>
           </div>
           <p className="text-xs text-slate-deep">Build PDA writes a grammar for you. Check my productions keeps the grammar you type and tells you whether it generates exactly this language.</p>
         </div>

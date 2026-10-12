@@ -3,7 +3,7 @@ import { parseGrammar, PRESETS } from '../core';
 import { useLab } from '../hooks/useLab';
 
 /** Editable grammar with live validation. Only valid grammars are applied. */
-export function GrammarEditor() {
+export function GrammarEditor({ compact = false }: { compact?: boolean }) {
   const lab = useLab();
   const [draft, setDraft] = useState(lab.grammarText);
   const ta = useRef<HTMLTextAreaElement>(null);
@@ -29,7 +29,7 @@ export function GrammarEditor() {
   return (
     <div className="flex flex-col gap-3">
       <label htmlFor="grammar-input" className="label">Productions P (one variable per line)</label>
-      <textarea id="grammar-input" ref={ta} rows={5} spellCheck={false} autoCapitalize="off" autoComplete="off"
+      <textarea id="grammar-input" ref={ta} rows={compact ? Math.min(10, draft.split('\n').length + 1) : 5} spellCheck={false} autoCapitalize="off" autoComplete="off"
         value={draft} onChange={(e) => setDraft(e.target.value)}
         onKeyDown={(e) => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) apply(); }}
         className="field resize-y text-[16px] leading-relaxed"
@@ -54,7 +54,7 @@ export function GrammarEditor() {
           </ul>
         )}
       </div>
-      <div>
+      {!compact && <div>
         <div className="label mb-1.5">Example grammars</div>
         <div className="flex flex-wrap gap-1.5">
           {PRESETS.map((p) => (
@@ -62,10 +62,17 @@ export function GrammarEditor() {
               onClick={() => lab.applyPreset(p.id)}>{p.name}</button>
           ))}
         </div>
-      </div>
-      <p className="text-xs text-slate">
-        Syntax: the left side is one capital letter; capital letters on the right are variables, any other character is a terminal; separate alternatives with |; write ε for the empty string. The left side of the first line is the start symbol.
-      </p>
+      </div>}
+      {compact ? (
+        <details className="text-xs text-slate">
+          <summary className="cursor-pointer select-none hover:text-ink">Syntax help</summary>
+          <p className="mt-1">Left side: one capital letter. Capital letters on the right are variables, anything else is a terminal. Separate alternatives with |. Write ε for the empty string. The first line's left side is the start symbol.</p>
+        </details>
+      ) : (
+        <p className="text-xs text-slate">
+          Syntax: the left side is one capital letter; capital letters on the right are variables, any other character is a terminal; separate alternatives with |; write ε for the empty string. The left side of the first line is the start symbol.
+        </p>
+      )}
     </div>
   );
 }
@@ -78,7 +85,8 @@ export function InputEditor() {
   const examples = lab.preset
     ? [...lab.preset.valid.map((s) => ({ s, ok: true })), ...lab.preset.invalid.map((s) => ({ s, ok: false }))]
     : [];
-  const run = () => lab.setInput(draft.replace(/\s+/g, ''));
+  // Run: load the string, restart from move 0 and play it
+  const run = () => { lab.setInput(draft.replace(/\s+/g, '')); lab.startRun(); };
   return (
     <div className="flex flex-col gap-2">
       <label htmlFor="input-string" className="label">Input string w</label>

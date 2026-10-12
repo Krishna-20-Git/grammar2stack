@@ -48,7 +48,7 @@ function defaultCondition(kind: ConditionKind, sigma: string[]): Condition {
   }
 }
 
-function currentText(l: BuiltLanguage): string {
+export function currentText(l: BuiltLanguage): string {
   const kind = l.kind === 'context-free'
     ? 'Context-free (the linked counts need the stack)'
     : 'Regular (a finite memory is enough; the PDA still uses its stack to hold the derivation)';

@@ -4,16 +4,16 @@ import { BranchExplorer } from '../components/BranchExplorer';
 import { ChallengeMode } from '../components/ChallengeMode';
 import { Controls } from '../components/Controls';
 import { Explanation } from '../components/Explanation';
-import { InputEditor } from '../components/GrammarEditor';
+import { GrammarEditor, InputEditor } from '../components/GrammarEditor';
 import { InputTape } from '../components/InputTape';
 import { Inspector } from '../components/Inspector';
-import { LanguageBuilder } from '../components/LanguageBuilder';
+import { currentText, LanguageBuilder, VariableMeanings } from '../components/LanguageBuilder';
 import { Panel } from '../components/Panel';
 import { StackView } from '../components/StackView';
 import { StateDiagram, type Selection } from '../components/StateDiagram';
 import { HistoryTable, TransitionTable } from '../components/Tables';
 import { Verdict } from '../components/Verdict';
-import { formatConfiguration, PRESETS, showRhs } from '../core';
+import { formatConfiguration, PRESETS } from '../core';
 import { useLab } from '../hooks/useLab';
 
 /** The core experience: pick a grammar, enter a string, step through the run. */
@@ -24,8 +24,16 @@ export function SimulateTab() {
   const prevPos = index > 0 ? snapshots[index - 1].config.pos : 0;
   const rejectedEnd = atEnd && result.verdict.kind !== 'accepted';
 
+  // after a language is built: jump to the top, where the run starts, so the result is visible
+  const onBuilt = () => { lab.startRun(); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+
   return (
     <div className="flex flex-col gap-4 pb-40 lg:pb-0">
+      {lab.customLang && (
+        <div role="status" className="rounded-md border border-lime/40 bg-lime/[0.06] px-4 py-2.5 text-sm text-ink">
+          <span className="mr-2 font-semibold text-lime">PDA built from your description.</span>{currentText(lab.customLang)}
+        </div>
+      )}
       <div className="grid gap-4 lg:grid-cols-[300px_minmax(0,1fr)_280px]">
         {/* phones: tape first, so tape + stack + explanation are visible together */}
         <Panel eyebrow="Input tape" className="order-1 lg:hidden">
@@ -34,20 +42,21 @@ export function SimulateTab() {
 
         {/* left: grammar + input */}
         <div className="order-5 flex flex-col gap-4 lg:order-none">
-          <Panel eyebrow="1 · Grammar" title={lab.customLang ? 'Generated grammar' : preset?.name ?? 'Custom grammar'}
-            actions={<button className="text-xs text-cyan hover:underline" onClick={() => lab.setTab('theory')}>Edit</button>}>
+          <Panel eyebrow="1 · Grammar" title={lab.customLang ? 'Generated grammar (editable)' : preset?.name ?? 'Custom grammar'}>
             <label htmlFor="preset-select" className="label">Example grammar</label>
             <select id="preset-select" className="field text-sm" value={lab.presetId ?? ''}
               onChange={(e) => { if (e.target.value) lab.applyPreset(e.target.value); }}>
               {!lab.presetId && <option value="">{lab.customLang ? 'Described language' : 'Custom grammar'}</option>}
               {PRESETS.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select>
-            <ul className="math flex flex-col gap-0.5 text-[15px]">
-              {g.variables.map((v) => (
-                <li key={v}>{v} → {g.productions.filter((p) => p.lhs === v).map((p) => showRhs(p.rhs)).join(' | ')}</li>
-              ))}
-            </ul>
+            <p className="text-xs text-slate">These productions build the PDA. Edit them and press Apply to rebuild it.</p>
+            <GrammarEditor compact />
             {preset && <div className="math text-xs text-slate">{preset.language}</div>}
+            {lab.customLang && (
+              <ul className="flex flex-col gap-1 border-t border-edge pt-2 text-xs text-slate">
+                {g.variables.map((v) => <li key={v}><span className="math font-bold text-magenta">{v}</span>: {lab.customLang!.meaning[v]}</li>)}
+              </ul>
+            )}
           </Panel>
           <Panel eyebrow="2 · Input string">
             <InputEditor />
@@ -94,7 +103,14 @@ export function SimulateTab() {
         {advanced && (
           <div id="more-tools" className="flex flex-col gap-4">
             <Panel eyebrow="Describe a language" title="Describe a language in words, and get its grammar">
-              <LanguageBuilder compact />
+              <LanguageBuilder compact onBuilt={onBuilt} />
+              {lab.customLang && (
+                <div className="flex flex-col gap-2">
+                  <div className="label">Productions used to build the PDA, and what each variable remembers</div>
+                  <VariableMeanings />
+                  <p className="text-xs text-slate">You can edit these productions in the Grammar panel at the top of this page.</p>
+                </div>
+              )}
             </Panel>
             <Panel eyebrow="Practice" title="Predict, then verify">
               <p className="text-sm text-slate">Decide whether each string is accepted before the computation is revealed.</p>

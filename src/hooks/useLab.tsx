@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
   buildPDA,
   buildSimulation,
@@ -80,8 +80,11 @@ function useLabState() {
   const index = Math.min(rawIndex, last);
   const snapshot: Snapshot = snapshots[index];
 
-  // reset the timeline whenever the computation changes
-  useEffect(() => { setIndexRaw(0); setPlaying(false); }, [sim]);
+  // Reset the timeline whenever the computation changes. startRun() asks for the reset to
+  // be followed by playback; the token also forces a restart when nothing else changed.
+  const autoPlay = useRef(false);
+  const [runToken, setRunToken] = useState(0);
+  useEffect(() => { setIndexRaw(0); setPlaying(autoPlay.current); autoPlay.current = false; }, [sim, runToken]);
 
   // automatic playback: one deterministic snapshot per tick
   useEffect(() => {
@@ -104,6 +107,12 @@ function useLabState() {
     setPlaying(true);
   }, [last]);
   const pause = useCallback(() => setPlaying(false), []);
+  /** restart the current computation from move 0 and play it (also after the input or grammar changed) */
+  const startRun = useCallback(() => {
+    autoPlay.current = true;
+    setMode('auto');
+    setRunToken((t) => t + 1);
+  }, []);
   const openWorkspace = useCallback((t: Tab = 'simulate', showAdvanced = false) => {
     setView('workspace');
     setTab(t);
@@ -153,7 +162,7 @@ function useLabState() {
     g, pda, notes,
     input, w, setInput, outsideAlphabet,
     result, sim, snapshots, snapshot, leaf, pickLeaf,
-    index, setIndex, next, prev, play, pause, playing, atEnd, last,
+    index, setIndex, next, prev, play, pause, startRun, playing, atEnd, last,
     speed, setSpeed, status,
   };
 }

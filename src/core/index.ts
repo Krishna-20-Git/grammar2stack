@@ -26,3 +26,4 @@ export function runAll(grammarText: string, input: string, bounds: SearchBounds 
   return { ok: true as const, g, pda, result, sim };
 }
 export * from './language';
+export * from './compare';

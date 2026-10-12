@@ -4,6 +4,7 @@ import { BranchExplorer } from '../components/BranchExplorer';
 import { ChallengeMode } from '../components/ChallengeMode';
 import { Controls } from '../components/Controls';
 import { Explanation } from '../components/Explanation';
+import { GrammarCheck } from '../components/GrammarCheck';
 import { GrammarEditor, InputEditor } from '../components/GrammarEditor';
 import { InputTape } from '../components/InputTape';
 import { Inspector } from '../components/Inspector';
@@ -25,7 +26,12 @@ export function SimulateTab() {
   const rejectedEnd = atEnd && result.verdict.kind !== 'accepted';
 
   // after a language is built: jump to the top, where the run starts, so the result is visible
-  const onBuilt = () => { lab.startRun(); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+  // own = true ("Check my productions"): keep the grammar, just focus the editor so the person can type theirs
+  const onBuilt = (own: boolean) => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (own) setTimeout(() => document.getElementById('grammar-input')?.focus({ preventScroll: true }), 300);
+    else lab.startRun();
+  };
 
   return (
     <div className="flex flex-col gap-4 pb-40 lg:pb-0">
@@ -58,6 +64,7 @@ export function SimulateTab() {
               </ul>
             )}
           </Panel>
+          {lab.target && <GrammarCheck />}
           <Panel eyebrow="2 · Input string">
             <InputEditor />
           </Panel>
@@ -102,7 +109,7 @@ export function SimulateTab() {
         )}
         {advanced && (
           <div id="more-tools" className="flex flex-col gap-4">
-            <Panel eyebrow="Describe a language" title="Describe a language in words, and get its grammar">
+            <Panel eyebrow="Describe a language" title="Describe a language in words">
               <LanguageBuilder compact onBuilt={onBuilt} />
               {lab.customLang && (
                 <div className="flex flex-col gap-2">

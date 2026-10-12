@@ -21,6 +21,9 @@ import {
  * state diagram, stack, table and explanation always come from one step.
  */
 
+/** The language the person described (or was given), kept apart from the grammar so edits to the productions can be checked against it. */
+export interface Target { sigma: string[]; summary: string; accepts: (w: string) => boolean }
+
 export type View = 'home' | 'workspace' | 'docs';
 /** tabs inside the workspace: the run itself, the parse tree, and the formal theory */
 export type Tab = 'simulate' | 'derivation' | 'theory';
@@ -55,6 +58,7 @@ function useLabState() {
   const [grammarText, setGrammarTextRaw] = useState(DEFAULT.grammar);
   const [presetId, setPresetId] = useState<string | null>(DEFAULT.id);
   const [customLang, setCustomLang] = useState<BuiltLanguage | null>(null);
+  const [target, setTarget] = useState<Target | null>(null);
   const [input, setInputRaw] = useState(DEFAULT.valid[0]);
   const [leaf, setLeaf] = useState<number | undefined>(undefined);
   const [mode, setMode] = useState<Mode>('guided');
@@ -131,17 +135,19 @@ function useLabState() {
     setGrammarTextRaw(lang.grammarText);
     setPresetId(null);
     setCustomLang(lang);
+    setTarget(lang);
     setLeaf(undefined);
     setInputRaw(w ?? lang.preset.valid[Math.min(2, lang.preset.valid.length - 1)] ?? '');
   }, []);
   /** expected membership according to the description (only for built languages) */
   const membership = useMemo(
-    () => (customLang ? customLang.accepts : null),
-    [customLang],
+    () => (target ? target.accepts : null),
+    [target],
   );
   const applyPreset = useCallback((id: string, w?: string) => {
     const p = presetById(id)!;
     loadGrammar(p.grammar, id);
+    setTarget(null);
     setInputRaw(w ?? p.valid[0]);
   }, [loadGrammar]);
   const setInput = useCallback((s: string) => { setInputRaw(s); setLeaf(undefined); }, []);
@@ -158,7 +164,7 @@ function useLabState() {
 
   return {
     view, setView, tab, setTab, advanced, setAdvanced, openWorkspace, mode, setMode,
-    grammarText, presetId, preset, loadGrammar, applyPreset, parsed, customLang, loadLanguage, membership,
+    grammarText, presetId, preset, loadGrammar, applyPreset, parsed, customLang, loadLanguage, membership, target, setTarget,
     g, pda, notes,
     input, w, setInput, outsideAlphabet,
     result, sim, snapshots, snapshot, leaf, pickLeaf,

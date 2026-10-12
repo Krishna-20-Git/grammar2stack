@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react';
 import {
   buildLanguage,
+  buildPDA,
+  DEFAULT_BOUNDS,
+  parseGrammar,
+  search,
   describeCondition,
   parseAlphabet,
   parseDescription,
@@ -9,8 +13,20 @@ import {
   type ConditionKind,
   type CountOp,
   type BuiltLanguage,
+  type Grammar,
 } from '../core';
-import { useLab } from '../hooks/useLab';
+import { useLab, type Target } from '../hooks/useLab';
+
+/** Target for a named context-free pattern: membership comes from its canonical example grammar. */
+function presetTarget(p: NonNullable<ReturnType<typeof presetById>>): Target {
+  const gr = (parseGrammar(p.grammar) as { ok: true; grammar: Grammar }).grammar;
+  const pd = buildPDA(gr);
+  return { sigma: gr.terminals, summary: `belong to ${p.language}`, accepts: (w) => search(gr, pd, Array.from(w), DEFAULT_BOUNDS).verdict.kind === 'accepted' };
+}
+
+function targetText(l: Target): string {
+  return `Target set: strings over {${l.sigma.join(', ')}} that ${l.summary}. Your grammar was not changed. Enter your own productions in the Grammar box at the top and press Apply grammar to check them against this language.`;
+}
 
 const EXAMPLES = [
   'ending with two a',
@@ -95,7 +111,7 @@ function ConditionRow({ c, sigma, onChange, onRemove, i }: { c: Condition; sigma
  * Describe any language (in words or as conditions). The app generates a grammar
  * for it, converts the grammar to a PDA and loads it into the simulator.
  */
-export function LanguageBuilder({ compact = false, onBuilt }: { compact?: boolean; onBuilt?: () => void }) {
+export function LanguageBuilder({ compact = false, onBuilt }: { compact?: boolean; onBuilt?: (own: boolean) => void }) {
   const lab = useLab();
   const [alphabet, setAlphabet] = useState(lab.customLang ? lab.customLang.sigma.join(', ') : 'a, b');
   const [text, setText] = useState(lab.customLang ? lab.customLang.summary.replace(/^have the form /, '') : '');
@@ -106,38 +122,42 @@ export function LanguageBuilder({ compact = false, onBuilt }: { compact?: boolea
 
   useEffect(() => { if (lab.customLang) setRows(lab.customLang.conditions); }, [lab.customLang]);
 
-  const build = (conds: Condition[]) => {
+  // own = true: only set the described language as the target and keep the person's own productions
+  const build = (conds: Condition[], own = false) => {
     const res = buildLanguage(conds, sigma);
     if (!res.ok) { setErrors([res.error]); setInfo(null); return; }
-    lab.loadLanguage(res.lang);
+    if (own) { lab.setTarget(res.lang); setInfo(targetText(res.lang)); } else { lab.loadLanguage(res.lang); setInfo(currentText(res.lang)); }
     setErrors([]);
-    setInfo(currentText(res.lang));
-    onBuilt?.();
+    onBuilt?.(own);
   };
 
-  const fromText = (t: string) => {
+  const fromText = (t: string, own = false) => {
     setText(t);
     if (sigma.length === 0) { setErrors(['Enter the alphabet first, for example a, b.']); return; }
     const out = parseDescription(t, sigma);
     if (out.built) {
-      lab.loadLanguage(out.built);
+      if (own) { lab.setTarget(out.built); setInfo(targetText(out.built)); } else { lab.loadLanguage(out.built); setInfo(currentText(out.built)); }
       setRows([]);
       setErrors([]);
-      setInfo(currentText(out.built));
-      onBuilt?.();
+      onBuilt?.(own);
       return;
     }
     if (out.pattern) {
       const p = presetById(out.pattern)!;
-      lab.applyPreset(p.id);
+      const tg = presetTarget(p);
+      if (own) { lab.setTarget(tg); setInfo(targetText(tg)); }
+      else {
+        lab.applyPreset(p.id);
+        lab.setTarget(tg);
+        setInfo(`“${t}” is not a regular language: it needs the stack to count. Loaded the context-free grammar ${p.grammar.replace(/\n/g, '; ')} for ${p.language}.`);
+      }
       setErrors([]);
-      setInfo(`“${t}” is not a regular language: it needs the stack to count. Loaded the context-free grammar ${p.grammar.replace(/\n/g, '; ')} for ${p.language}.`);
-      onBuilt?.();
+      onBuilt?.(own);
       return;
     }
     setRows(out.conditions);
     if (out.errors.length) { setErrors(out.errors); setInfo(null); return; }
-    build(out.conditions);
+    build(out.conditions, own);
   };
 
   return (
@@ -149,8 +169,10 @@ export function LanguageBuilder({ compact = false, onBuilt }: { compact?: boolea
             <input id={`lang-text-${compact}`} className="field min-w-0 font-sans text-[15px]" value={text} spellCheck={false}
               placeholder="e.g. ending with two a and containing 3 b"
               onChange={(e) => setText(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') fromText(text); }} />
-            <button className="btn btn-primary shrink-0" onClick={() => fromText(text)} disabled={!text.trim()}>Build PDA</button>
+            <button className="btn btn-primary shrink-0" onClick={() => fromText(text)} disabled={!text.trim()} title="Generate a grammar for this language, convert it to a PDA and run it">Build PDA</button>
+            <button className="btn shrink-0" onClick={() => fromText(text, true)} disabled={!text.trim()} title="Keep your own productions and check them against this description">Check my productions</button>
           </div>
+          <p className="text-xs text-slate-deep">Build PDA writes a grammar for you. Check my productions keeps the grammar you type and tells you whether it generates exactly this language.</p>
         </div>
         <div className="flex flex-col gap-1">
           <label htmlFor={`lang-sigma-${compact}`} className="label">Alphabet Σ</label>
